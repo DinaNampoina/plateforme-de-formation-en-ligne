@@ -1,0 +1,6 @@
+@OnelineLearning_HostAddress = http://localhost:5259
+
+GET {{OnelineLearning_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
