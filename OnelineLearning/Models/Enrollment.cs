@@ -2,10 +2,19 @@
 {
     public class Enrollment
     {
-         public int IdEnrollment { get; set; }
-        public int IdStudent { get; set; }
-        public int IdCourse { get; set; }
-        public DateTime EnrollmentDate { get; set; }
-        public string Status { get; set; }
+        public enum EnrollmentStatus { 
+            Active = 0,
+            Completed = 1,
+            cancelled = 2
+        }
+         public int EnrollmentId { get; set; }
+        public int StudentId { get; set; }
+        public Student? Student { get; set; } = null;
+        public int CourseId { get; set; }
+        public Course? Course { get; set; } = null;
+        public DateTime EnrollmentDate { get; set; } = DateTime.UtcNow;
+        public EnrollmentStatus Status { get; set; }  = EnrollmentStatus.Active;
+
+
     }
 }
