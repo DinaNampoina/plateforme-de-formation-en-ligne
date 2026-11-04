@@ -144,7 +144,10 @@ namespace OnelineLearning.Migrations
             modelBuilder.Entity("OnelineLearning.Models.StudentProfile", b =>
                 {
                     b.Property<int>("StudentProfileId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("StudentProfileId"));
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -159,9 +162,12 @@ namespace OnelineLearning.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
                     b.HasKey("StudentProfileId");
 
-                    b.HasIndex("StudentProfileId")
+                    b.HasIndex("StudentId")
                         .IsUnique();
 
                     b.ToTable("StudentProfiles");
@@ -201,7 +207,7 @@ namespace OnelineLearning.Migrations
                 {
                     b.HasOne("OnelineLearning.Models.Student", "Student")
                         .WithOne("StudentProfile")
-                        .HasForeignKey("OnelineLearning.Models.StudentProfile", "StudentProfileId")
+                        .HasForeignKey("OnelineLearning.Models.StudentProfile", "StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

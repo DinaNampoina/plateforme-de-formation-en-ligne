@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using OnelineLearning.Models;
 using OnelineLearning.Data;
+using OnelineLearning.Repositories.Interfaces;
+using OnelineLearning.Repositories.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +16,15 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("OnelineLearningContext") ?? throw new InvalidOperationException("Connection string 'OnelineLearningContext' introuvable.")));
 
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+
 var app = builder.Build();
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

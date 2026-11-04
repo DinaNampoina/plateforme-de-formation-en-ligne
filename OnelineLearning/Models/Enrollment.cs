@@ -5,7 +5,7 @@
         public enum EnrollmentStatus { 
             Active = 0,
             Completed = 1,
-            cancelled = 2
+            Cancelled = 2
         }
          public int EnrollmentId { get; set; }
         public int StudentId { get; set; }

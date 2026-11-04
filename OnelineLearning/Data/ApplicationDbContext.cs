@@ -31,9 +31,8 @@ namespace OnelineLearning.Data
                 e.Property(sp => sp.Address).HasMaxLength(255);
                 e.HasOne(sp => sp.Student)
                  .WithOne(s => s.StudentProfile)
-                 .HasForeignKey<StudentProfile>(sp => sp.StudentProfileId)
+                 .HasForeignKey<StudentProfile>(sp => sp.StudentId)
                  .OnDelete(DeleteBehavior.Cascade);
-                e.HasIndex(sp => sp.StudentProfileId).IsUnique();
             });
 
 
