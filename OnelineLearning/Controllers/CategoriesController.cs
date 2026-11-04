@@ -1,84 +1,157 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using OnelineLearning.Models;
+using OnelineLearning.DTOs.Categories;
+using OnelineLearning.DTOs.Courses;
+using OnelineLearning.Repositories.Interfaces;
 
 namespace OnelineLearning.Controllers
 {
-    public class CategoriesController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class CategoriesController : ControllerBase
     {
-        // GET: CategoriesController
-        public ActionResult Index()
+        private readonly ICategoryRepository _categoryRepository;
+
+        public CategoriesController(ICategoryRepository categoryRepository)
         {
-            return View();
+            _categoryRepository = categoryRepository;
         }
 
-        // GET: CategoriesController/Details/5
-        public ActionResult Details(int id)
+        // GET: api/categories
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
         {
-            return View();
+            var categories = await _categoryRepository.GetAllAsync();
+
+            var result = categories.Select(c => new CategoryDto
+            {
+                CategoryId = c.CategoryId,
+                Name = c.Name,
+                Description = c.Description
+            });
+
+            return Ok(result);
         }
 
-        // GET: CategoriesController/Create
-        public ActionResult Create()
+        // GET: api/categories/1
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CategoryDto>> GetById(int id)
         {
-            return View();
+            var category = await _categoryRepository.GetByIdAsync(id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            var result = new CategoryDto
+            {
+                CategoryId = category.CategoryId,
+                Name = category.Name,
+                Description = category.Description
+            };
+
+            return Ok(result);
         }
 
-        // POST: CategoriesController/Create
+        // GET: api/categories/1/courses
+        [HttpGet("{id}/courses")]
+        public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(int id)
+        {
+            var category = await _categoryRepository.GetByIdAsync(id);
+
+            if (category == null)
+            {
+                return NotFound("Catégorie introuvable.");
+            }
+
+            var courses = await _categoryRepository.GetCoursesAsync(id);
+
+            var result = courses.Select(c => new CourseDto
+            {
+                CourseId = c.CourseId,
+                CategoryId = c.CategoryId,
+                Title = c.Title,
+                Description = c.Description,
+                Price = c.Price
+            });
+
+            return Ok(result);
+        }
+
+        // POST: api/categories
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult<CategoryDto>> Create(CreateCategoryDto dto)
         {
-            try
+            var existingCategory =
+                await _categoryRepository.GetByNameAsync(dto.Name);
+
+            if (existingCategory != null)
             {
-                return RedirectToAction(nameof(Index));
+                return Conflict("Cette catégorie existe déjà.");
             }
-            catch
+
+            var category = new Category
             {
-                return View();
-            }
+                Name = dto.Name,
+                Description = dto.Description
+            };
+
+            await _categoryRepository.AddAsync(category);
+            await _categoryRepository.SaveChangesAsync();
+
+            var result = new CategoryDto
+            {
+                CategoryId = category.CategoryId,
+                Name = category.Name,
+                Description = category.Description
+            };
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = category.CategoryId },
+                result
+            );
         }
 
-        // GET: CategoriesController/Edit/5
-        public ActionResult Edit(int id)
+        // PUT: api/categories/1
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
+            int id,
+            UpdateCategoryDto dto)
         {
-            return View();
+            var category = await _categoryRepository.GetByIdAsync(id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            category.Name = dto.Name;
+            category.Description = dto.Description;
+
+            _categoryRepository.Update(category);
+            await _categoryRepository.SaveChangesAsync();
+
+            return NoContent();
         }
 
-        // POST: CategoriesController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        // DELETE: api/categories/1
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
+            var category = await _categoryRepository.GetByIdAsync(id);
 
-        // GET: CategoriesController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
+            if (category == null)
+            {
+                return NotFound();
+            }
 
-        // POST: CategoriesController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _categoryRepository.Delete(category);
+            await _categoryRepository.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

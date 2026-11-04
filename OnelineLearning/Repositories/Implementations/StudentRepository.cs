@@ -39,7 +39,7 @@ namespace OnelineLearning.Repositories.Implementations
         }
         public async Task UpdateAsync(Student student)
         {
-            await Task.Run(() => _context.Students.Update(student));
+           await Task.Run(() => _context.Students.Update(student));
         }
         public async Task DeleteAsync(Student student)
         {

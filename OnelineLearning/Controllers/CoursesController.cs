@@ -1,84 +1,161 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnelineLearning.Models;
+using OnelineLearning.DTOs.Courses;
+using OnelineLearning.Repositories.Interfaces;
 
 namespace OnelineLearning.Controllers
 {
-    public class CoursesController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class CoursesController : ControllerBase
     {
-        // GET: CoursesController
-        public ActionResult Index()
+        private readonly ICourseRepository _courseRepository;
+        private readonly ICategoryRepository _categoryRepository;
+
+        public CoursesController(
+            ICourseRepository courseRepository,
+            ICategoryRepository categoryRepository)
         {
-            return View();
+            _courseRepository = courseRepository;
+            _categoryRepository = categoryRepository;
         }
 
-        // GET: CoursesController/Details/5
-        public ActionResult Details(int id)
+        // GET: api/courses
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CourseDto>>> GetAll()
         {
-            return View();
+            var courses = await _courseRepository.GetAllAsync();
+
+            var result = courses.Select(c => new CourseDto
+            {
+                CourseId = c.CourseId,
+                CategoryId = c.CategoryId,
+                Title = c.Title,
+                Description = c.Description,
+                Price = c.Price
+            });
+
+            return Ok(result);
         }
 
-        // GET: CoursesController/Create
-        public ActionResult Create()
+        // GET: api/courses/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CourseDto>> GetById(int id)
         {
-            return View();
+            var course = await _courseRepository.GetByIdAsync(id);
+
+            if (course == null)
+                return NotFound("Cours introuvable.");
+
+            var result = new CourseDto
+            {
+                CourseId = course.CourseId,
+                CategoryId = course.CategoryId,
+                Title = course.Title,
+                Description = course.Description,
+                Price = course.Price
+            };
+
+            return Ok(result);
         }
 
-        // POST: CoursesController/Create
+        // GET: api/courses/category/2
+        [HttpGet("category/{categoryId}")]
+        public async Task<ActionResult<IEnumerable<CourseDto>>> GetByCategory(int categoryId)
+        {
+            var category = await _categoryRepository.GetByIdAsync(categoryId);
+
+            if (category == null)
+                return NotFound("Catégorie introuvable.");
+
+            var courses = await _courseRepository.GetByCategoryIdAsync(categoryId);
+
+            var result = courses.Select(c => new CourseDto
+            {
+                CourseId = c.CourseId,
+                CategoryId = c.CategoryId,
+                Title = c.Title,
+                Description = c.Description,
+                Price = c.Price
+            });
+
+            return Ok(result);
+        }
+
+        // POST: api/courses
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult<CourseDto>> Create(CreateCourseDto dto)
         {
-            try
+            var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
+
+            if (category == null)
+                return NotFound("Catégorie introuvable.");
+
+            var course = new Course
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
+                CategoryId = dto.CategoryId,
+                Title = dto.Title,
+                Description = dto.Description,
+                Price = dto.Price
+            };
+
+            await _courseRepository.AddAsync(course);
+            await _courseRepository.SaveChangesAsync();
+
+            var result = new CourseDto
             {
-                return View();
-            }
+                CourseId = course.CourseId,
+                CategoryId = course.CategoryId,
+                Title = course.Title,
+                Description = course.Description,
+                Price = course.Price
+            };
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = course.CourseId },
+                result
+            );
         }
 
-        // GET: CoursesController/Edit/5
-        public ActionResult Edit(int id)
+        // PUT: api/courses/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, UpdateCourseDto dto)
         {
-            return View();
+            var course = await _courseRepository.GetByIdAsync(id);
+
+            if (course == null)
+                return NotFound("Cours introuvable.");
+
+            var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
+
+            if (category == null)
+                return NotFound("Catégorie introuvable.");
+
+            course.CategoryId = dto.CategoryId;
+            course.Title = dto.Title;
+            course.Description = dto.Description;
+            course.Price = dto.Price;
+
+            _courseRepository.Update(course);
+            await _courseRepository.SaveChangesAsync();
+
+            return NoContent();
         }
 
-        // POST: CoursesController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        // DELETE: api/courses/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
+            var course = await _courseRepository.GetByIdAsync(id);
 
-        // GET: CoursesController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
+            if (course == null)
+                return NotFound("Cours introuvable.");
 
-        // POST: CoursesController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _courseRepository.Delete(course);
+            await _courseRepository.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

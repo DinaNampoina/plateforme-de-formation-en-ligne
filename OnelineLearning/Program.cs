@@ -14,7 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("OnelineLearningContext") ?? throw new InvalidOperationException("Connection string 'OnelineLearningContext' introuvable.")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("OnelineLearningContext")));
 
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();

@@ -19,10 +19,12 @@ namespace OnelineLearning.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Student>(e =>
-            {   
+            {
                 e.Property(s => s.FirstName).IsRequired().HasMaxLength(100);
                 e.Property(s => s.LastName).IsRequired().HasMaxLength(100);
                 e.Property(s => s.Email).IsRequired().HasMaxLength(255);
+                e.Property(s => s.CreatedAt).IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
             modelBuilder.Entity<StudentProfile>(e =>
