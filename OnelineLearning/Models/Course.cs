@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace OnelineLearning.Models
+﻿namespace OnelineLearning.Models
 {
     public class Course
     {
