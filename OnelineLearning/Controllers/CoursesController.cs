@@ -32,7 +32,7 @@ namespace OnelineLearning.Controllers
             return Ok(courses.Select(ToDto));
         }
 
-        // GET: api/courses/5
+        // GET: api/courses/id
         [HttpGet("{id}")]
         public async Task<ActionResult<CourseDto>> GetById(int id)
         {
@@ -44,7 +44,7 @@ namespace OnelineLearning.Controllers
             return Ok(ToDto(course));
         }
 
-        // GET: api/courses/category/2
+        // GET: api/courses/category/id
         [HttpGet("category/{categoryId}")]
         public async Task<ActionResult<IEnumerable<CourseDto>>> GetByCategory(int categoryId)
         {
@@ -57,7 +57,7 @@ namespace OnelineLearning.Controllers
             return Ok(courses.Select(ToDto));
         }
 
-        // GET: api/courses/5/students  -> étudiants inscrits à un cours
+        // GET: api/courses/id/students
         [HttpGet("{id:int}/students")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents(int id)
         {
@@ -101,7 +101,7 @@ namespace OnelineLearning.Controllers
             return CreatedAtAction(nameof(GetById), new { id = course.CourseId }, ToDto(course));
         }
 
-        // PUT: api/courses/5
+        // PUT: api/courses/id
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateCourseDto dto)
         {
@@ -124,7 +124,7 @@ namespace OnelineLearning.Controllers
             return NoContent();
         }
 
-        // DELETE: api/courses/5
+        // DELETE: api/courses/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -133,9 +133,8 @@ namespace OnelineLearning.Controllers
             if (course == null)
                 return NotFound("Cours introuvable.");
 
-            // Règle Restrict : on refuse de supprimer un cours qui a des inscriptions
             var withEnrollments = await _courseRepository.GetWithEnrollmentsAsync(id);
-            if (withEnrollments != null && withEnrollments.Enrollments.Any())
+            if (withEnrollments != null && (withEnrollments.Enrollments.Any() == true))
                 return Conflict("Impossible de supprimer un cours qui a des inscriptions.");
 
             _courseRepository.Delete(course);

@@ -147,7 +147,7 @@ namespace OnelineLearning.Controllers
             return NoContent();
         }
 
-        // DELETE: api/studentprofiles/id
+        // DELETE: api/studentprofile/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

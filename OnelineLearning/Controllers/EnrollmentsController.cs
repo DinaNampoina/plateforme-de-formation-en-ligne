@@ -136,7 +136,7 @@ namespace OnelineLearning.Controllers
                 StudentId = dto.StudentId,
                 CourseId = dto.CourseId,
                 Status = dto.Status
-                // EnrollmentDate = DateTime.UtcNow est défini par défaut dans le modèle
+                
             };
 
             await _enrollmentRepository.AddAsync(enrollment);
@@ -175,14 +175,14 @@ namespace OnelineLearning.Controllers
             return NoContent();
         }
 
-        // DELETE: api/enrollments/1  -> annuler une inscription
+        // DELETE: api/enrollments/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var enrollment = await _enrollmentRepository.GetByIdAsync(id);
 
             if (enrollment == null)
-                return NotFound("Inscription introuvable.");
+                return NotFound("inscription introuvable ");
 
             _enrollmentRepository.Delete(enrollment);
             await _enrollmentRepository.SaveChangesAsync();

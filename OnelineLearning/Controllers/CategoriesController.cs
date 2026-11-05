@@ -77,7 +77,7 @@ namespace OnelineLearning.Controllers
             return CreatedAtAction(nameof(GetById), new { id = category.CategoryId }, ToDto(category));
         }
 
-        // PUT: api/categories/1
+        // PUT: api/categories/id
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
         {
