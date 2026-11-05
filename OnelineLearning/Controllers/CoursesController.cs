@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OnelineLearning.Models;
 using OnelineLearning.DTOs.Courses;
+using OnelineLearning.DTOs.Students;
+using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
 
 namespace OnelineLearning.Controllers
@@ -11,13 +12,16 @@ namespace OnelineLearning.Controllers
     {
         private readonly ICourseRepository _courseRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IEnrollmentRepository _enrollmentRepository;
 
         public CoursesController(
             ICourseRepository courseRepository,
-            ICategoryRepository categoryRepository)
+            ICategoryRepository categoryRepository,
+            IEnrollmentRepository enrollmentRepository)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
+            _enrollmentRepository = enrollmentRepository;
         }
 
         // GET: api/courses
@@ -25,17 +29,7 @@ namespace OnelineLearning.Controllers
         public async Task<ActionResult<IEnumerable<CourseDto>>> GetAll()
         {
             var courses = await _courseRepository.GetAllAsync();
-
-            var result = courses.Select(c => new CourseDto
-            {
-                CourseId = c.CourseId,
-                CategoryId = c.CategoryId,
-                Title = c.Title,
-                Description = c.Description,
-                Price = c.Price
-            });
-
-            return Ok(result);
+            return Ok(courses.Select(ToDto));
         }
 
         // GET: api/courses/5
@@ -47,16 +41,7 @@ namespace OnelineLearning.Controllers
             if (course == null)
                 return NotFound("Cours introuvable.");
 
-            var result = new CourseDto
-            {
-                CourseId = course.CourseId,
-                CategoryId = course.CategoryId,
-                Title = course.Title,
-                Description = course.Description,
-                Price = course.Price
-            };
-
-            return Ok(result);
+            return Ok(ToDto(course));
         }
 
         // GET: api/courses/category/2
@@ -69,26 +54,37 @@ namespace OnelineLearning.Controllers
                 return NotFound("Catégorie introuvable.");
 
             var courses = await _courseRepository.GetByCategoryIdAsync(categoryId);
+            return Ok(courses.Select(ToDto));
+        }
 
-            var result = courses.Select(c => new CourseDto
-            {
-                CourseId = c.CourseId,
-                CategoryId = c.CategoryId,
-                Title = c.Title,
-                Description = c.Description,
-                Price = c.Price
-            });
+        // GET: api/courses/5/students  -> étudiants inscrits à un cours
+        [HttpGet("{id:int}/students")]
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents(int id)
+        {
+            var course = await _courseRepository.GetByIdAsync(id);
 
-            return Ok(result);
+            if (course == null)
+                return NotFound("Cours introuvable.");
+
+            var enrollments = await _enrollmentRepository.GetByCourseIdAsync(id);
+
+            return Ok(enrollments
+                .Where(e => e.Student != null)
+                .Select(e => new StudentDto
+                {
+                    StudentId = e.Student!.StudentId,
+                    FirstName = e.Student.FirstName,
+                    LastName = e.Student.LastName,
+                    Email = e.Student.Email,
+                    CreatedAt = e.Student.CreatedAt
+                }));
         }
 
         // POST: api/courses
         [HttpPost]
         public async Task<ActionResult<CourseDto>> Create(CreateCourseDto dto)
         {
-            var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
-
-            if (category == null)
+            if (await _categoryRepository.GetByIdAsync(dto.CategoryId) == null)
                 return NotFound("Catégorie introuvable.");
 
             var course = new Course
@@ -102,20 +98,7 @@ namespace OnelineLearning.Controllers
             await _courseRepository.AddAsync(course);
             await _courseRepository.SaveChangesAsync();
 
-            var result = new CourseDto
-            {
-                CourseId = course.CourseId,
-                CategoryId = course.CategoryId,
-                Title = course.Title,
-                Description = course.Description,
-                Price = course.Price
-            };
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = course.CourseId },
-                result
-            );
+            return CreatedAtAction(nameof(GetById), new { id = course.CourseId }, ToDto(course));
         }
 
         // PUT: api/courses/5
@@ -127,9 +110,7 @@ namespace OnelineLearning.Controllers
             if (course == null)
                 return NotFound("Cours introuvable.");
 
-            var category = await _categoryRepository.GetByIdAsync(dto.CategoryId);
-
-            if (category == null)
+            if (await _categoryRepository.GetByIdAsync(dto.CategoryId) == null)
                 return NotFound("Catégorie introuvable.");
 
             course.CategoryId = dto.CategoryId;
@@ -152,10 +133,24 @@ namespace OnelineLearning.Controllers
             if (course == null)
                 return NotFound("Cours introuvable.");
 
+            // Règle Restrict : on refuse de supprimer un cours qui a des inscriptions
+            var withEnrollments = await _courseRepository.GetWithEnrollmentsAsync(id);
+            if (withEnrollments != null && withEnrollments.Enrollments.Any())
+                return Conflict("Impossible de supprimer un cours qui a des inscriptions.");
+
             _courseRepository.Delete(course);
             await _courseRepository.SaveChangesAsync();
 
             return NoContent();
         }
+
+        private static CourseDto ToDto(Course c) => new()
+        {
+            CourseId = c.CourseId,
+            CategoryId = c.CategoryId,
+            Title = c.Title,
+            Description = c.Description,
+            Price = c.Price
+        };
     }
 }

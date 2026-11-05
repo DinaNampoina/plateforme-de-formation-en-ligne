@@ -13,12 +13,10 @@ namespace OnelineLearning.Controllers
         private readonly IStudentProfileRepository _profileRepository;
         private readonly IStudentRepository _studentRepository;
 
-        public StudentProfilesController(
-            IStudentProfileRepository profileRepository,
-            IStudentRepository studentRepository)
+        public StudentProfilesController(IStudentProfileRepository profileRepository,IStudentRepository studentRepository)
         {
-            _profileRepository = profileRepository;
-            _studentRepository = studentRepository;
+            this._profileRepository = profileRepository;
+            this._studentRepository = studentRepository;
         }
 
         // GET: api/studentprofiles
@@ -39,7 +37,7 @@ namespace OnelineLearning.Controllers
             return Ok(result);
         }
 
-        // GET: api/studentprofiles/1
+        // GET: api/studentprofiles/id
         [HttpGet("{id}")]
         public async Task<ActionResult<StudentProfileDto>> GetById(int id)
         {
@@ -47,7 +45,7 @@ namespace OnelineLearning.Controllers
 
             if (profile == null)
             {
-                return NotFound();
+                return NotFound("Profil non trouvee");
             }
 
             var result = new StudentProfileDto
@@ -70,7 +68,7 @@ namespace OnelineLearning.Controllers
 
             if (profile == null)
             {
-                return NotFound();
+                return NotFound("Profil non trouvée");
             }
 
             var result = new StudentProfileDto
@@ -85,7 +83,7 @@ namespace OnelineLearning.Controllers
             return Ok(result);
         }
 
-        // POST: api/studentprofiles
+        // POST: api/studentprofile
         [HttpPost]
         public async Task<ActionResult<StudentProfileDto>> Create(
             CreateStudentProfileDto dto)
@@ -125,11 +123,7 @@ namespace OnelineLearning.Controllers
                 BirthDate = profile.BirthDate
             };
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = profile.StudentProfileId },
-                result
-            );
+            return Ok(result);
         }
 
         // PUT: api/studentprofiles/1
@@ -153,7 +147,7 @@ namespace OnelineLearning.Controllers
             return NoContent();
         }
 
-        // DELETE: api/studentprofiles/1
+        // DELETE: api/studentprofiles/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

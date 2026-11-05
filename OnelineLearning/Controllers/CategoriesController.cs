@@ -1,8 +1,7 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
-using OnelineLearning.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnelineLearning.DTOs.Categories;
 using OnelineLearning.DTOs.Courses;
+using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
 
 namespace OnelineLearning.Controllers
@@ -15,7 +14,7 @@ namespace OnelineLearning.Controllers
 
         public CategoriesController(ICategoryRepository categoryRepository)
         {
-            _categoryRepository = categoryRepository;
+            this._categoryRepository = categoryRepository;
         }
 
         // GET: api/categories
@@ -23,74 +22,48 @@ namespace OnelineLearning.Controllers
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
         {
             var categories = await _categoryRepository.GetAllAsync();
-
-            var result = categories.Select(c => new CategoryDto
-            {
-                CategoryId = c.CategoryId,
-                Name = c.Name,
-                Description = c.Description
-            });
-
-            return Ok(result);
+            return Ok(categories.Select(ToDto));
         }
 
-        // GET: api/categories/1
+        // GET: api/categories/id
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryDto>> GetById(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 
             if (category == null)
-            {
-                return NotFound();
-            }
+                return NotFound("Catégorie introuvable.");
 
-            var result = new CategoryDto
-            {
-                CategoryId = category.CategoryId,
-                Name = category.Name,
-                Description = category.Description
-            };
-
-            return Ok(result);
+            return Ok(ToDto(category));
         }
 
-        // GET: api/categories/1/courses
+        // GET: api/categories/id/courses
         [HttpGet("{id}/courses")]
         public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 
             if (category == null)
-            {
-                return NotFound("Catégorie introuvable.");
-            }
+                return NotFound("Categorie introuvable.");
 
             var courses = await _categoryRepository.GetCoursesAsync(id);
 
-            var result = courses.Select(c => new CourseDto
+            return Ok(courses.Select(c => new CourseDto
             {
                 CourseId = c.CourseId,
                 CategoryId = c.CategoryId,
                 Title = c.Title,
                 Description = c.Description,
                 Price = c.Price
-            });
-
-            return Ok(result);
+            }));
         }
 
         // POST: api/categories
         [HttpPost]
         public async Task<ActionResult<CategoryDto>> Create(CreateCategoryDto dto)
         {
-            var existingCategory =
-                await _categoryRepository.GetByNameAsync(dto.Name);
-
-            if (existingCategory != null)
-            {
+            if (await _categoryRepository.GetByNameAsync(dto.Name) != null)
                 return Conflict("Cette catégorie existe déjà.");
-            }
 
             var category = new Category
             {
@@ -101,32 +74,21 @@ namespace OnelineLearning.Controllers
             await _categoryRepository.AddAsync(category);
             await _categoryRepository.SaveChangesAsync();
 
-            var result = new CategoryDto
-            {
-                CategoryId = category.CategoryId,
-                Name = category.Name,
-                Description = category.Description
-            };
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = category.CategoryId },
-                result
-            );
+            return CreatedAtAction(nameof(GetById), new { id = category.CategoryId }, ToDto(category));
         }
 
         // PUT: api/categories/1
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(
-            int id,
-            UpdateCategoryDto dto)
+        public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 
             if (category == null)
-            {
-                return NotFound();
-            }
+                return NotFound("categorie introuvable");
+
+            var sameName = await _categoryRepository.GetByNameAsync(dto.Name);
+            if (sameName != null && sameName.CategoryId != id)
+                return Conflict("un  categorie a deja ce nom");
 
             category.Name = dto.Name;
             category.Description = dto.Description;
@@ -137,21 +99,30 @@ namespace OnelineLearning.Controllers
             return NoContent();
         }
 
-        // DELETE: api/categories/1
+        // DELETE: api/categories/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 
             if (category == null)
-            {
-                return NotFound();
-            }
+                return NotFound("Catégorie introuvable.");
+
+            var courses = await _categoryRepository.GetCoursesAsync(id);
+            if (courses.Any() == true)
+                return Conflict("Impossible de supprimer ce  categorie qui contient des cours.");
 
             _categoryRepository.Delete(category);
             await _categoryRepository.SaveChangesAsync();
 
             return NoContent();
         }
+
+        private static CategoryDto ToDto(Category c) => new()
+        {
+            CategoryId = c.CategoryId,
+            Name = c.Name,
+            Description = c.Description
+        };
     }
 }

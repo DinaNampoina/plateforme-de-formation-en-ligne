@@ -5,71 +5,35 @@ using OnelineLearning.Repositories.Interfaces;
 
 namespace OnelineLearning.Repositories.Implementations
 {
-    public class EnrollmentRepository : IEnrollmentRepository
+    public class EnrollmentRepository : Repository<Enrollment>, IEnrollmentRepository
     {
-        private readonly ApplicationDbContext _context;
+        public EnrollmentRepository(ApplicationDbContext context) : base(context) { }
 
-        public EnrollmentRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<IEnumerable<Enrollment>> GetAllAsync()
-        {
-            return await _context.Enrollments
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        public async Task<Enrollment?> GetByIdAsync(int id)
-        {
-            return await _context.Enrollments.FindAsync(id);
-        }
-
+       
         public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(int studentId)
         {
-            return await _context.Enrollments
+            return await _dbSet
                 .AsNoTracking()
+                .Include(e => e.Course)
                 .Where(e => e.StudentId == studentId)
                 .ToListAsync();
         }
 
+        // Include(Student) : on charge aussi l'étudiant pour "les étudiants d'un cours"
         public async Task<IEnumerable<Enrollment>> GetByCourseIdAsync(int courseId)
         {
-            return await _context.Enrollments
+            return await _dbSet
                 .AsNoTracking()
+                .Include(e => e.Student)
                 .Where(e => e.CourseId == courseId)
                 .ToListAsync();
         }
 
-        public async Task<Enrollment?> GetByStudentAndCourseAsync(
-            int studentId, int courseId)
+        public async Task<Enrollment?> GetByStudentAndCourseAsync(int studentId, int courseId)
         {
-            return await _context.Enrollments
+            return await _dbSet
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e =>
-                    e.StudentId == studentId &&
-                    e.CourseId == courseId);
-        }
-
-        public async Task AddAsync(Enrollment enrollment)
-        {
-            await _context.Enrollments.AddAsync(enrollment);
-        }
-
-        public void Update(Enrollment enrollment)
-        {
-            _context.Enrollments.Update(enrollment);
-        }
-
-        public void Delete(Enrollment enrollment)
-        {
-            _context.Enrollments.Remove(enrollment);
-        }
-
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
+                .FirstOrDefaultAsync(e => e.StudentId == studentId && e.CourseId == courseId);
         }
     }
 }

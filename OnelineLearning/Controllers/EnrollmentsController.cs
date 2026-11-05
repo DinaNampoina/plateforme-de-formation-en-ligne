@@ -23,7 +23,7 @@ namespace OnelineLearning.Controllers
             _courseRepository = courseRepository;
         }
 
-        // GET: api/enrollments
+        // GET: api/enrollment
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetAll()
         {
@@ -41,14 +41,14 @@ namespace OnelineLearning.Controllers
             return Ok(result);
         }
 
-        // GET: api/enrollments/1
+        // GET: api/enrollment/id
         [HttpGet("{id}")]
         public async Task<ActionResult<EnrollmentDto>> GetById(int id)
         {
             var enrollment = await _enrollmentRepository.GetByIdAsync(id);
 
             if (enrollment == null)
-                return NotFound("Inscription introuvable.");
+                return NotFound("inscription introuvable.");
 
             var result = new EnrollmentDto
             {
@@ -62,14 +62,14 @@ namespace OnelineLearning.Controllers
             return Ok(result);
         }
 
-        // GET: api/enrollments/student/1
+        // GET: api/enrollment/student/id
         [HttpGet("student/{studentId}")]
         public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetByStudent(int studentId)
         {
             var student = await _studentRepository.GetByIdAsync(studentId);
 
             if (student == null)
-                return NotFound("Étudiant introuvable.");
+                return NotFound("etudiant introuvable.");
 
             var enrollments = await _enrollmentRepository.GetByStudentIdAsync(studentId);
 
@@ -85,7 +85,7 @@ namespace OnelineLearning.Controllers
             return Ok(result);
         }
 
-        // GET: api/enrollments/course/1
+        // GET: api/enrollments/course/id
         [HttpGet("course/{courseId}")]
         public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetByCourse(int courseId)
         {
@@ -136,6 +136,7 @@ namespace OnelineLearning.Controllers
                 StudentId = dto.StudentId,
                 CourseId = dto.CourseId,
                 Status = dto.Status
+                // EnrollmentDate = DateTime.UtcNow est défini par défaut dans le modèle
             };
 
             await _enrollmentRepository.AddAsync(enrollment);
@@ -174,7 +175,7 @@ namespace OnelineLearning.Controllers
             return NoContent();
         }
 
-        // DELETE: api/enrollments/1
+        // DELETE: api/enrollments/1  -> annuler une inscription
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
