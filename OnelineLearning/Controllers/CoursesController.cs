@@ -34,7 +34,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/courses/id
         [HttpGet("{id}")]
-        public async Task<ActionResult<CourseDto>> GetById(int id)
+        public async Task<ActionResult<CourseDto>> GetById(Guid id)
         {
             var course = await _courseRepository.GetByIdAsync(id);
 
@@ -46,7 +46,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/courses/category/id
         [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<IEnumerable<CourseDto>>> GetByCategory(int categoryId)
+        public async Task<ActionResult<IEnumerable<CourseDto>>> GetByCategory(Guid categoryId)
         {
             var category = await _categoryRepository.GetByIdAsync(categoryId);
 
@@ -55,29 +55,6 @@ namespace OnelineLearning.Controllers
 
             var courses = await _courseRepository.GetByCategoryIdAsync(categoryId);
             return Ok(courses.Select(ToDto));
-        }
-
-        // GET: api/courses/id/students
-        [HttpGet("{id:int}/students")]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents(int id)
-        {
-            var course = await _courseRepository.GetByIdAsync(id);
-
-            if (course == null)
-                return NotFound("Cours introuvable.");
-
-            var enrollments = await _enrollmentRepository.GetByCourseIdAsync(id);
-
-            return Ok(enrollments
-                .Where(e => e.Student != null)
-                .Select(e => new StudentDto
-                {
-                    StudentId = e.Student!.StudentId,
-                    FirstName = e.Student.FirstName,
-                    LastName = e.Student.LastName,
-                    Email = e.Student.Email,
-                    CreatedAt = e.Student.CreatedAt
-                }));
         }
 
         // POST: api/courses
@@ -103,7 +80,7 @@ namespace OnelineLearning.Controllers
 
         // PUT: api/courses/id
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateCourseDto dto)
+        public async Task<IActionResult> Update(Guid id, UpdateCourseDto dto)
         {
             var course = await _courseRepository.GetByIdAsync(id);
 
@@ -111,7 +88,7 @@ namespace OnelineLearning.Controllers
                 return NotFound("Cours introuvable.");
 
             if (await _categoryRepository.GetByIdAsync(dto.CategoryId) == null)
-                return NotFound("Catégorie introuvable.");
+                return NotFound("Categorie introuvable.");
 
             course.CategoryId = dto.CategoryId;
             course.Title = dto.Title;
@@ -126,7 +103,7 @@ namespace OnelineLearning.Controllers
 
         // DELETE: api/courses/id
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var course = await _courseRepository.GetByIdAsync(id);
 

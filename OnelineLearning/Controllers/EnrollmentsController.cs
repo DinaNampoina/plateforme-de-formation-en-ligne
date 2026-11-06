@@ -43,7 +43,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/enrollment/id
         [HttpGet("{id}")]
-        public async Task<ActionResult<EnrollmentDto>> GetById(int id)
+        public async Task<ActionResult<EnrollmentDto>> GetById(Guid id)
         {
             var enrollment = await _enrollmentRepository.GetByIdAsync(id);
 
@@ -64,7 +64,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/enrollment/student/id
         [HttpGet("student/{studentId}")]
-        public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetByStudent(int studentId)
+        public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetByStudent(Guid studentId)
         {
             var student = await _studentRepository.GetByIdAsync(studentId);
 
@@ -87,7 +87,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/enrollments/course/id
         [HttpGet("course/{courseId}")]
-        public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetByCourse(int courseId)
+        public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetByCourse(Guid courseId)
         {
             var course = await _courseRepository.GetByIdAsync(courseId);
 
@@ -160,7 +160,7 @@ namespace OnelineLearning.Controllers
 
         // PUT: api/enrollments/1
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateEnrollmentDto dto)
+        public async Task<IActionResult> Update(Guid id, UpdateEnrollmentDto dto)
         {
             var enrollment = await _enrollmentRepository.GetByIdAsync(id);
 
@@ -177,7 +177,7 @@ namespace OnelineLearning.Controllers
 
         // DELETE: api/enrollments/id
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var enrollment = await _enrollmentRepository.GetByIdAsync(id);
 

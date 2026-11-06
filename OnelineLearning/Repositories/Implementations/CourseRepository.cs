@@ -9,7 +9,7 @@ namespace OnelineLearning.Repositories.Implementations
     {
         public CourseRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Course>> GetByCategoryIdAsync(int categoryId)
+        public async Task<IEnumerable<Course>> GetByCategoryIdAsync(Guid categoryId)
         {
             return await _dbSet
                 .AsNoTracking()
@@ -17,7 +17,7 @@ namespace OnelineLearning.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<Course?> GetWithEnrollmentsAsync(int id)
+        public async Task<Course?> GetWithEnrollmentsAsync(Guid id)
         {
             return await _dbSet
                 .AsNoTracking()

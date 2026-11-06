@@ -10,7 +10,7 @@ namespace OnelineLearning.Repositories.Implementations
         public EnrollmentRepository(ApplicationDbContext context) : base(context) { }
 
        
-        public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(int studentId)
+        public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(Guid studentId)
         {
             return await _dbSet
                 .AsNoTracking()
@@ -20,7 +20,7 @@ namespace OnelineLearning.Repositories.Implementations
         }
 
         // Include(Student) : on charge aussi l'étudiant pour "les étudiants d'un cours"
-        public async Task<IEnumerable<Enrollment>> GetByCourseIdAsync(int courseId)
+        public async Task<IEnumerable<Enrollment>> GetByCourseIdAsync(Guid courseId)
         {
             return await _dbSet
                 .AsNoTracking()
@@ -29,7 +29,7 @@ namespace OnelineLearning.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<Enrollment?> GetByStudentAndCourseAsync(int studentId, int courseId)
+        public async Task<Enrollment?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId)
         {
             return await _dbSet
                 .AsNoTracking()

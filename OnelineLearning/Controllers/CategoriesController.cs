@@ -27,7 +27,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/categories/id
         [HttpGet("{id}")]
-        public async Task<ActionResult<CategoryDto>> GetById(int id)
+        public async Task<ActionResult<CategoryDto>> GetById(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 
@@ -39,7 +39,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/categories/id/courses
         [HttpGet("{id}/courses")]
-        public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(int id)
+        public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 
@@ -79,7 +79,7 @@ namespace OnelineLearning.Controllers
 
         // PUT: api/categories/id
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
+        public async Task<IActionResult> Update(Guid id, UpdateCategoryDto dto)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 
@@ -101,7 +101,7 @@ namespace OnelineLearning.Controllers
 
         // DELETE: api/categories/id
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
 

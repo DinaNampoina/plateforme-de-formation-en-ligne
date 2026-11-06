@@ -4,8 +4,8 @@ namespace OnelineLearning.DTOs.Enrollments
 {
     public class CreateEnrollmentDto
     {
-        public int StudentId { get; set; }
-        public int CourseId { get; set; }
+        public Guid StudentId { get; set; }
+        public Guid CourseId { get; set; }
         public Enrollment.EnrollmentStatus Status { get; set; } = Enrollment.EnrollmentStatus.Active;
     }
 }

@@ -39,7 +39,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/studentprofiles/id
         [HttpGet("{id}")]
-        public async Task<ActionResult<StudentProfileDto>> GetById(int id)
+        public async Task<ActionResult<StudentProfileDto>> GetById(Guid id)
         {
             var profile = await _profileRepository.GetByIdAsync(id);
 
@@ -62,7 +62,7 @@ namespace OnelineLearning.Controllers
 
         // GET: api/studentprofiles/student/1
         [HttpGet("student/{studentId}")]
-        public async Task<ActionResult<StudentProfileDto>> GetByStudentId(int studentId)
+        public async Task<ActionResult<StudentProfileDto>> GetByStudentId(Guid studentId)
         {
             var profile = await _profileRepository.GetByStudentIdAsync(studentId);
 
@@ -128,7 +128,7 @@ namespace OnelineLearning.Controllers
 
         // PUT: api/studentprofiles/1
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateStudentProfileDto dto)
+        public async Task<IActionResult> Update(Guid id, UpdateStudentProfileDto dto)
         {
             var profile = await _profileRepository.GetByIdAsync(id);
 
@@ -149,7 +149,7 @@ namespace OnelineLearning.Controllers
 
         // DELETE: api/studentprofile/id
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var profile = await _profileRepository.GetByIdAsync(id);
 

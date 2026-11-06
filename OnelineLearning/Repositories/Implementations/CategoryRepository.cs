@@ -14,7 +14,7 @@ namespace OnelineLearning.Repositories.Implementations
             return await _dbSet.AsNoTracking().FirstOrDefaultAsync(c => c.Name == name);
         }
 
-        public async Task<IEnumerable<Course>> GetCoursesAsync(int categoryId)
+        public async Task<IEnumerable<Course>> GetCoursesAsync(Guid categoryId)
         {
             return await _context.Courses
                 .AsNoTracking()

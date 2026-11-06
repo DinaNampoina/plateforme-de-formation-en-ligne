@@ -9,7 +9,7 @@ namespace OnelineLearning.Repositories.Implementations
     {
         public StudentProfileRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<StudentProfile?> GetByStudentIdAsync(int studentId)
+        public async Task<StudentProfile?> GetByStudentIdAsync(Guid studentId)
         {
             return await _dbSet.AsNoTracking().FirstOrDefaultAsync(p => p.StudentId == studentId);
         }

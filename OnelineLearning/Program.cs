@@ -6,7 +6,7 @@ using OnelineLearning.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers + affichage des enums en texte 
+
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();

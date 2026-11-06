@@ -6,7 +6,7 @@ namespace OnelineLearning.Repositories.Interfaces
     {
 
         Task<Category?> GetByNameAsync(string name);
-        Task<IEnumerable<Course>> GetCoursesAsync(int categoryId);
+        Task<IEnumerable<Course>> GetCoursesAsync(Guid categoryId);
 
     }
 }

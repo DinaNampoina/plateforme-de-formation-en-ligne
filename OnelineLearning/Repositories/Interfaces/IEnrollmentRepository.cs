@@ -4,8 +4,8 @@ namespace OnelineLearning.Repositories.Interfaces
 {
     public interface IEnrollmentRepository : IRepository<Enrollment>
     {
-        Task<IEnumerable<Enrollment>> GetByStudentIdAsync(int studentId);
-        Task<IEnumerable<Enrollment>> GetByCourseIdAsync(int courseId);
-        Task<Enrollment?> GetByStudentAndCourseAsync(int studentId, int courseId);
+        Task<IEnumerable<Enrollment>> GetByStudentIdAsync(Guid studentId);
+        Task<IEnumerable<Enrollment>> GetByCourseIdAsync(Guid courseId);
+        Task<Enrollment?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId);
     }
 }

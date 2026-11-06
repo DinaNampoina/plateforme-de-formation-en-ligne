@@ -31,8 +31,8 @@ namespace OnelineLearning.Controllers
         }
 
         // GET: api/students/id
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<StudentDto>> GetById(int id)
+        [HttpGet("{id:Guid}")]
+        public async Task<ActionResult<StudentDto>> GetById(Guid id)
         {
             var student = await _studentRepository.GetByIdAsync(id);
 
@@ -55,8 +55,8 @@ namespace OnelineLearning.Controllers
         }
 
         // GET: api/students/id/profile
-        [HttpGet("{id:int}/profile")]
-        public async Task<ActionResult<StudentProfileDto>> GetProfile(int id)
+        [HttpGet("{id:Guid}/profile")]
+        public async Task<ActionResult<StudentProfileDto>> GetProfile(Guid id)
         {
             var student = await _studentRepository.GetByIdAsync(id);
 
@@ -79,8 +79,8 @@ namespace OnelineLearning.Controllers
         }
 
         // GET: api/students/id/courses 
-        [HttpGet("{id:int}/courses")]
-        public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(int id)
+        [HttpGet("{id:Guid}/courses")]
+        public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses(Guid id)
         {
             var student = await _studentRepository.GetByIdAsync(id);
 
@@ -122,8 +122,8 @@ namespace OnelineLearning.Controllers
         }
 
         // PUT: api/students/id
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, UpdateStudentDto dto)
+        [HttpPut("{id:Guid}")]
+        public async Task<IActionResult> Update(Guid id, UpdateStudentDto dto)
         {
             var student = await _studentRepository.GetByIdAsync(id);
 
@@ -144,9 +144,9 @@ namespace OnelineLearning.Controllers
             return NoContent();
         }
 
-        // DELETE: api/students/5  (le profil et les inscriptions partent en cascade)
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        // DELETE: api/students/id  
+        [HttpDelete("{id:Guid}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             var student = await _studentRepository.GetByIdAsync(id);
 
