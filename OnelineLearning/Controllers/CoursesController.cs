@@ -3,6 +3,7 @@ using OnelineLearning.DTOs.Courses;
 using OnelineLearning.DTOs.Students;
 using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
+using OnelineLearning.DTOs;
 
 namespace OnelineLearning.Controllers
 {
@@ -128,5 +129,19 @@ namespace OnelineLearning.Controllers
             Description = c.Description,
             Price = c.Price
         };
+
+
+        [HttpGet("pagination")]
+        public async Task<ActionResult<Pagination<Course>>> Paged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
+
+            var pagedResult = await _courseRepository.PageCoursAsync(pageNumber, pageSize);
+
+            return Ok(pagedResult);
+        }
     }
 }

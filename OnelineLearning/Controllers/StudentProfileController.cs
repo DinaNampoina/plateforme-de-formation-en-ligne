@@ -1,7 +1,9 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-using OnelineLearning.Models;
+using OnelineLearning.DTOs;
 using OnelineLearning.DTOs.StudentProfiles;
+using OnelineLearning.DTOs.Students;
+using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
 
 namespace OnelineLearning.Controllers
@@ -13,7 +15,7 @@ namespace OnelineLearning.Controllers
         private readonly IStudentProfileRepository _profileRepository;
         private readonly IStudentRepository _studentRepository;
 
-        public StudentProfilesController(IStudentProfileRepository profileRepository,IStudentRepository studentRepository)
+        public StudentProfilesController(IStudentProfileRepository profileRepository, IStudentRepository studentRepository)
         {
             this._profileRepository = profileRepository;
             this._studentRepository = studentRepository;
@@ -162,6 +164,35 @@ namespace OnelineLearning.Controllers
             await _profileRepository.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private static StudentProfileDto ProToDto(StudentProfile p) => new()
+        {
+            StudentProfileId = p.StudentProfileId,
+            StudentId = p.StudentId,
+            PhoneNumber = p.PhoneNumber,
+            Address = p.Address,
+            BirthDate = p.BirthDate
+        };
+
+        //GET: api/studentprofiles/pagination?pageNumber=1&pageSize=10
+        [HttpGet("pagination")]
+        public async Task<ActionResult<Pagination<StudentProfile>>> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
+            var pagination = await _profileRepository.PageProfileAsync(pageNumber, pageSize);
+
+            return Ok(new Pagination<StudentProfileDto>
+            {
+                Items = pagination.Items.Select(p => ProToDto(p)).ToList(),
+                PageNumber = pagination.PageNumber,
+                PageSize = pagination.PageSize,
+                TotalCount = pagination.TotalCount,
+                TotalPages = pagination.TotalPages
+            });
         }
     }
 }

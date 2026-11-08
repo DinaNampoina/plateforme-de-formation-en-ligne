@@ -1,4 +1,5 @@
-﻿using OnelineLearning.Models;
+﻿using OnelineLearning.DTOs;
+using OnelineLearning.Models;
 
 namespace OnelineLearning.Repositories.Interfaces
 {
@@ -6,5 +7,6 @@ namespace OnelineLearning.Repositories.Interfaces
     {
         Task<IEnumerable<Course>> GetByCategoryIdAsync(Guid categoryId);
         Task<Course?> GetWithEnrollmentsAsync( Guid id);
+        Task<Pagination<Course>> PageCoursAsync(int pageNumber, int pageSize);
     }
 }

@@ -2,6 +2,7 @@
 using OnelineLearning.Models;
 using OnelineLearning.DTOs.Enrollments;
 using OnelineLearning.Repositories.Interfaces;
+using OnelineLearning.DTOs;
 
 namespace OnelineLearning.Controllers
 {
@@ -188,6 +189,18 @@ namespace OnelineLearning.Controllers
             await _enrollmentRepository.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpGet("pagination")]
+        public async Task<ActionResult<Pagination<Enrollment>>> Paged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            if(pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
+            var pagedResult = await _enrollmentRepository.PageEnrollmentsAsync(pageNumber, pageSize);
+
+            return Ok(pagedResult);
         }
     }
 }

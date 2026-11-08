@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OnelineLearning.DTOs;
 using OnelineLearning.DTOs.Courses;
 using OnelineLearning.DTOs.StudentProfiles;
 using OnelineLearning.DTOs.Students;
@@ -15,7 +16,7 @@ namespace OnelineLearning.Controllers
         private readonly IStudentProfileRepository _profileRepository;
         private readonly IEnrollmentRepository _enrollmentRepository;
 
-        public StudentsController(IStudentRepository studentRepository,IStudentProfileRepository profileRepository,IEnrollmentRepository enrollmentRepository)
+        public StudentsController(IStudentRepository studentRepository, IStudentProfileRepository profileRepository, IEnrollmentRepository enrollmentRepository)
         {
             this._studentRepository = studentRepository;
             this._profileRepository = profileRepository;
@@ -128,11 +129,11 @@ namespace OnelineLearning.Controllers
             var student = await _studentRepository.GetByIdAsync(id);
 
             if (student == null)
-                return NotFound("Étudiant introuvable.");
+                return NotFound("etudiant introuvable");
 
             var sameEmail = await _studentRepository.GetByEmailAsync(dto.Email);
             if (sameEmail != null && sameEmail.StudentId != id)
-                return Conflict("Cet email est déjà utilisé par un autre étudiant.");
+                return Conflict("Cet email est deja utilisé par un autre etudiant");
 
             student.FirstName = dto.FirstName;
             student.LastName = dto.LastName;
@@ -167,5 +168,52 @@ namespace OnelineLearning.Controllers
             Email = s.Email,
             CreatedAt = s.CreatedAt
         };
+
+
+        // GET: api/students/nom
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<StudentDto>>> SearchName([FromQuery] string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return BadRequest("Le nom à rechercher est obligatoire.");
+            }
+
+            var students = await _studentRepository.SearchByNameAsync(name);
+
+            var result = students.Select(s => new StudentDto
+            {
+                StudentId = s.StudentId,
+                FirstName = s.FirstName,
+                LastName = s.LastName,
+                Email = s.Email,
+                CreatedAt = s.CreatedAt
+            });
+
+            return Ok(result);
+        }
+
+        // GET: api/students/pagination?pageNumber=1&pageSize=10
+        [HttpGet("pagination")]
+        public async Task<ActionResult<Pagination<StudentDto>>> GetPaged([FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 10)
+        {
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
+
+            var pagination = await _studentRepository.GetPagedAsync(pageNumber, pageSize);
+
+            var result = new Pagination<StudentDto>
+            {
+                Items = pagination.Items.Select(s => ToDto(s)).ToList(),
+                PageNumber = pagination.PageNumber,
+                PageSize = pagination.PageSize,
+                TotalCount = pagination.TotalCount,
+                TotalPages = pagination.TotalPages
+            };
+
+            return Ok(result);
+        }
     }
 }
