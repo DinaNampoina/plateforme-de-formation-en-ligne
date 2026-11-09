@@ -3,6 +3,8 @@ using OnelineLearning.DTOs.Courses;
 using OnelineLearning.DTOs.Students;
 using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
+using OnelineLearning.DTOs;
+using FluentValidation;
 
 namespace OnelineLearning.Controllers
 {
@@ -13,15 +15,16 @@ namespace OnelineLearning.Controllers
         private readonly ICourseRepository _courseRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly IValidator<CreateCourseDto> _createCourseValidator;
+        private readonly IValidator<UpdateCourseDto> _updateCourseValidator;
 
-        public CoursesController(
-            ICourseRepository courseRepository,
-            ICategoryRepository categoryRepository,
-            IEnrollmentRepository enrollmentRepository)
+            public CoursesController(ICourseRepository courseRepository,ICategoryRepository categoryRepository,IEnrollmentRepository enrollmentRepository, IValidator<CreateCourseDto> createCourseValidator, IValidator<UpdateCourseDto> updateCourseValidator)
         {
             _courseRepository = courseRepository;
             _categoryRepository = categoryRepository;
             _enrollmentRepository = enrollmentRepository;
+            _createCourseValidator = createCourseValidator;
+            _updateCourseValidator = updateCourseValidator;
         }
 
         // GET: api/courses
@@ -61,6 +64,15 @@ namespace OnelineLearning.Controllers
         [HttpPost]
         public async Task<ActionResult<CourseDto>> Create(CreateCourseDto dto)
         {
+            var validation = await _createCourseValidator.ValidateAsync(dto);
+            if(!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             if (await _categoryRepository.GetByIdAsync(dto.CategoryId) == null)
                 return NotFound("Catégorie introuvable.");
 
@@ -82,6 +94,16 @@ namespace OnelineLearning.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateCourseDto dto)
         {
+            var validation = await _updateCourseValidator.ValidateAsync(dto);
+
+            if(!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             var course = await _courseRepository.GetByIdAsync(id);
 
             if (course == null)
@@ -128,5 +150,19 @@ namespace OnelineLearning.Controllers
             Description = c.Description,
             Price = c.Price
         };
+
+
+        [HttpGet("pagination")]
+        public async Task<ActionResult<Pagination<Course>>> Paged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
+
+            var pagedResult = await _courseRepository.PageCoursAsync(pageNumber, pageSize);
+
+            return Ok(pagedResult);
+        }
     }
 }

@@ -2,6 +2,7 @@
 using OnelineLearning.Data;
 using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
+using OnelineLearning.DTOs;
 
 namespace OnelineLearning.Repositories.Implementations
 {
@@ -20,6 +21,24 @@ namespace OnelineLearning.Repositories.Implementations
                 .AsNoTracking()
                 .Where(c => c.CategoryId == categoryId)
                 .ToListAsync();
+        }
+        public async Task<Pagination<Category>> PageCategoriesAsync(int pageNumber, int pageSize)
+        {
+            var query = _context.Categories.AsNoTracking();
+            var totalCount = await query.CountAsync();
+            var categories = await query
+                .OrderBy(c => c.Name)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            return new Pagination<Category>
+            {
+                Items = categories,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            };
         }
     }
 }

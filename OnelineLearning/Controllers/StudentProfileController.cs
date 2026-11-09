@@ -1,8 +1,10 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-using OnelineLearning.Models;
+using OnelineLearning.DTOs;
 using OnelineLearning.DTOs.StudentProfiles;
+using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
+using FluentValidation;
 
 namespace OnelineLearning.Controllers
 {
@@ -12,11 +14,15 @@ namespace OnelineLearning.Controllers
     {
         private readonly IStudentProfileRepository _profileRepository;
         private readonly IStudentRepository _studentRepository;
+        private readonly IValidator<CreateStudentProfileDto> _createProfileValidator;
+        private readonly IValidator<UpdateStudentProfileDto> _updateProfileValidator;
 
-        public StudentProfilesController(IStudentProfileRepository profileRepository,IStudentRepository studentRepository)
+        public StudentProfilesController(IStudentProfileRepository profileRepository, IStudentRepository studentRepository, IValidator<CreateStudentProfileDto> createProfileValidator, IValidator<UpdateStudentProfileDto> updateProfileValidator)
         {
             this._profileRepository = profileRepository;
             this._studentRepository = studentRepository;
+            this._createProfileValidator = createProfileValidator;
+            this._updateProfileValidator = updateProfileValidator;
         }
 
         // GET: api/studentprofiles
@@ -88,6 +94,15 @@ namespace OnelineLearning.Controllers
         public async Task<ActionResult<StudentProfileDto>> Create(
             CreateStudentProfileDto dto)
         {
+            var validation = await _createProfileValidator.ValidateAsync(dto);
+            if (!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             var student = await _studentRepository.GetByIdAsync(dto.StudentId);
 
             if (student == null)
@@ -130,6 +145,15 @@ namespace OnelineLearning.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateStudentProfileDto dto)
         {
+            var  validation = await _updateProfileValidator.ValidateAsync(dto);
+            if (!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             var profile = await _profileRepository.GetByIdAsync(id);
 
             if (profile == null)
@@ -162,6 +186,35 @@ namespace OnelineLearning.Controllers
             await _profileRepository.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private static StudentProfileDto ProToDto(StudentProfile p) => new()
+        {
+            StudentProfileId = p.StudentProfileId,
+            StudentId = p.StudentId,
+            PhoneNumber = p.PhoneNumber,
+            Address = p.Address,
+            BirthDate = p.BirthDate
+        };
+
+        //GET: api/studentprofiles/pagination?pageNumber=1&pageSize=10
+        [HttpGet("pagination")]
+        public async Task<ActionResult<Pagination<StudentProfile>>> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest();
+            }
+            var pagination = await _profileRepository.PageProfileAsync(pageNumber, pageSize);
+
+            return Ok(new Pagination<StudentProfileDto>
+            {
+                Items = pagination.Items.Select(p => ProToDto(p)).ToList(),
+                PageNumber = pagination.PageNumber,
+                PageSize = pagination.PageSize,
+                TotalCount = pagination.TotalCount,
+                TotalPages = pagination.TotalPages
+            });
         }
     }
 }
