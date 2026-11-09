@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using OnelineLearning.Data;
 using OnelineLearning.Repositories.Implementations;
 using OnelineLearning.Repositories.Interfaces;
+using OnelineLearning.Exceptions;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,8 +26,17 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 
+//Exception Handler
+builder.Services.AddExceptionHandler<ExcHandler>();
+
+// Validation
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
+app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

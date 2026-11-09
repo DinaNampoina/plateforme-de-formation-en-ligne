@@ -5,6 +5,7 @@ using OnelineLearning.DTOs.StudentProfiles;
 using OnelineLearning.DTOs.Students;
 using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
+using FluentValidation;
 
 namespace OnelineLearning.Controllers
 {
@@ -15,12 +16,16 @@ namespace OnelineLearning.Controllers
         private readonly IStudentRepository _studentRepository;
         private readonly IStudentProfileRepository _profileRepository;
         private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly IValidator<CreateStudentDto> _createStudentValidator;
+        private readonly IValidator<UpdateStudentDto> _updateStudentValidator;
 
-        public StudentsController(IStudentRepository studentRepository, IStudentProfileRepository profileRepository, IEnrollmentRepository enrollmentRepository)
+        public StudentsController(IStudentRepository studentRepository, IStudentProfileRepository profileRepository, IEnrollmentRepository enrollmentRepository, IValidator<CreateStudentDto> createStudentValidator, IValidator<UpdateStudentDto> updateStudentValidator)
         {
             this._studentRepository = studentRepository;
             this._profileRepository = profileRepository;
             this._enrollmentRepository = enrollmentRepository;
+            this._createStudentValidator = createStudentValidator;
+            this._updateStudentValidator = updateStudentValidator;
         }
 
         // GET: api/students
@@ -106,16 +111,28 @@ namespace OnelineLearning.Controllers
         [HttpPost]
         public async Task<ActionResult<StudentDto>> Create(CreateStudentDto dto)
         {
-            if (await _studentRepository.GetByEmailAsync(dto.Email) != null)
-                return Conflict("Cet email est déjà utilisé.");
+            var validation = await _createStudentValidator.ValidateAsync(dto);
 
+            if (!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+
+                return ValidationProblem(ModelState);
+            }
+            if (await _studentRepository.GetByEmailAsync(dto.Email) != null)
+            {
+                return Conflict("Cet email est déjà utilisé.");
+            }
             var student = new Student
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Email = dto.Email
             };
-
+             
             await _studentRepository.AddAsync(student);
             await _studentRepository.SaveChangesAsync();
 
@@ -126,6 +143,15 @@ namespace OnelineLearning.Controllers
         [HttpPut("{id:Guid}")]
         public async Task<IActionResult> Update(Guid id, UpdateStudentDto dto)
         {
+            var validation = await _updateStudentValidator.ValidateAsync(dto);
+            if(!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             var student = await _studentRepository.GetByIdAsync(id);
 
             if (student == null)
@@ -138,6 +164,8 @@ namespace OnelineLearning.Controllers
             student.FirstName = dto.FirstName;
             student.LastName = dto.LastName;
             student.Email = dto.Email;
+
+             
 
             _studentRepository.Update(student);
             await _studentRepository.SaveChangesAsync();

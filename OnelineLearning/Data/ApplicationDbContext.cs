@@ -29,7 +29,7 @@ namespace OnelineLearning.Data
 
             modelBuilder.Entity<StudentProfile>(e =>
             {
-                e.Property(sp => sp.PhoneNumber).HasMaxLength(20);
+                e.Property(sp => sp.PhoneNumber).HasMaxLength(10);
                 e.Property(sp => sp.Address).HasMaxLength(255);
                 e.HasOne(sp => sp.Student)
                  .WithOne(s => s.StudentProfile)

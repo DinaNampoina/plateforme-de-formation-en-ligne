@@ -3,6 +3,7 @@ using OnelineLearning.Models;
 using OnelineLearning.DTOs.Enrollments;
 using OnelineLearning.Repositories.Interfaces;
 using OnelineLearning.DTOs;
+using FluentValidation;
 
 namespace OnelineLearning.Controllers
 {
@@ -13,15 +14,16 @@ namespace OnelineLearning.Controllers
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly IStudentRepository _studentRepository;
         private readonly ICourseRepository _courseRepository;
+        private readonly IValidator<CreateEnrollmentDto> _createEnrollmentValidator;
+        private readonly IValidator<UpdateEnrollmentDto> _updateEnrollmentValidator;
 
-        public EnrollmentsController(
-            IEnrollmentRepository enrollmentRepository,
-            IStudentRepository studentRepository,
-            ICourseRepository courseRepository)
+        public EnrollmentsController(IEnrollmentRepository enrollmentRepository,IStudentRepository studentRepository,ICourseRepository courseRepository, IValidator<CreateEnrollmentDto> createEnrollmentValidator, IValidator<UpdateEnrollmentDto> updateEnrollmentValidator)
         {
             _enrollmentRepository = enrollmentRepository;
             _studentRepository = studentRepository;
             _courseRepository = courseRepository;
+            _createEnrollmentValidator = createEnrollmentValidator;
+            _updateEnrollmentValidator = updateEnrollmentValidator;
         }
 
         // GET: api/enrollment
@@ -114,6 +116,15 @@ namespace OnelineLearning.Controllers
         public async Task<ActionResult<EnrollmentDto>> Create(CreateEnrollmentDto dto)
         {
             var student = await _studentRepository.GetByIdAsync(dto.StudentId);
+            var validation = await _createEnrollmentValidator.ValidateAsync(dto);
+            if(!validation.IsValid)
+            {
+                foreach(var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
 
             if (student == null)
                 return NotFound("Étudiant introuvable.");
@@ -163,6 +174,15 @@ namespace OnelineLearning.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateEnrollmentDto dto)
         {
+            var validation = await _updateEnrollmentValidator.ValidateAsync(dto);
+            if(!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             var enrollment = await _enrollmentRepository.GetByIdAsync(id);
 
             if (enrollment == null)

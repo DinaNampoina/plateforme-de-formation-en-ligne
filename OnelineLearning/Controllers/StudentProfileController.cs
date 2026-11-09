@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using OnelineLearning.DTOs;
 using OnelineLearning.DTOs.StudentProfiles;
-using OnelineLearning.DTOs.Students;
 using OnelineLearning.Models;
 using OnelineLearning.Repositories.Interfaces;
+using FluentValidation;
 
 namespace OnelineLearning.Controllers
 {
@@ -14,11 +14,15 @@ namespace OnelineLearning.Controllers
     {
         private readonly IStudentProfileRepository _profileRepository;
         private readonly IStudentRepository _studentRepository;
+        private readonly IValidator<CreateStudentProfileDto> _createProfileValidator;
+        private readonly IValidator<UpdateStudentProfileDto> _updateProfileValidator;
 
-        public StudentProfilesController(IStudentProfileRepository profileRepository, IStudentRepository studentRepository)
+        public StudentProfilesController(IStudentProfileRepository profileRepository, IStudentRepository studentRepository, IValidator<CreateStudentProfileDto> createProfileValidator, IValidator<UpdateStudentProfileDto> updateProfileValidator)
         {
             this._profileRepository = profileRepository;
             this._studentRepository = studentRepository;
+            this._createProfileValidator = createProfileValidator;
+            this._updateProfileValidator = updateProfileValidator;
         }
 
         // GET: api/studentprofiles
@@ -90,6 +94,15 @@ namespace OnelineLearning.Controllers
         public async Task<ActionResult<StudentProfileDto>> Create(
             CreateStudentProfileDto dto)
         {
+            var validation = await _createProfileValidator.ValidateAsync(dto);
+            if (!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             var student = await _studentRepository.GetByIdAsync(dto.StudentId);
 
             if (student == null)
@@ -132,6 +145,15 @@ namespace OnelineLearning.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, UpdateStudentProfileDto dto)
         {
+            var  validation = await _updateProfileValidator.ValidateAsync(dto);
+            if (!validation.IsValid)
+            {
+                foreach (var error in validation.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+                return ValidationProblem(ModelState);
+            }
             var profile = await _profileRepository.GetByIdAsync(id);
 
             if (profile == null)
